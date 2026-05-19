@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trail Finder Quiz – On Running North West England</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    background: #f5f5f3;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2rem 1rem;
+    color: #1a1a1a;
+  }
+
+  .page-header {
+    width: 100%;
+    max-width: 640px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+  }
+
+  .on-logo {
+    font-size: 28px;
+    font-weight: 600;
+    letter-spacing: -1.5px;
+    color: #1a1a1a;
+  }
+
+  .nw-badge {
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #777;
+    border: 0.5px solid #ccc;
+    border-radius: 20px;
+    padding: 4px 12px;
+  }
+
+  .card {
+    background: #fff;
+    border-radius: 16px;
+    border: 0.5px solid #e0e0e0;
+    width: 100%;
+    max-width: 640px;
+    overflow: hidden;
+  }
+
+  .card-inner {
+    padding: 2rem;
+  }
+
+  .progress-wrap {
+    margin-bottom: 1.75rem;
+  }
+
+  .progress-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+
+  .step-label {
+    font-size: 12px;
+    color: #888;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .step-dots {
+    display: flex;
+    gap: 5px;
+  }
+
+  .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #e0e0e0;
+    transition: background 0.25s;
+  }
+
+  .dot.active { background: #1a1a1a; }
+  .dot.done { background: #888; }
+
+  .progress-bar {
+    height: 2px;
+    background: #e8e8e8;
+    border-radius: 2px;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: #1a1a1a;
+    border-radius: 2px;
+    transition: width 0.35s ease;
+  }
+
+  .q-text {
+    font-size: 20px;
+    font-weight: 500;
+    line-height: 1.35;
+    margin-bottom: 1.5rem;
+    color: #1a1a1a;
+  }
+
+  .options {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 1.75rem;
+  }
+
+  .opt {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 18px;
+    border: 0.5px solid #ddd;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s, transform 0.1s;
+    background: #fff;
+    user-select: none;
+  }
+
+  .opt:hover { border-color: #aaa; background: #fafafa; }
+  .opt:active { transform: scale(0.99); }
+
+  .opt.selected {
+    border: 1.5px solid #1a1a1a;
+    background: #f8f8f8;
+  }
+
+  .opt-icon {
+    font-size: 20px;
+    width: 28px;
+    text-align: center;
+    color: #555;
+    flex-shrink: 0;
+  }
+
+  .opt.selected .opt-icon { color: #1a1a1a; }
+
+  .opt-text { flex: 1; }
+
+  .opt-label {
+    font-size: 15px;
+    font-weight: 500;
+    color: #1a1a1a;
+    margin-bottom: 2px;
+  }
+
+  .opt-sub {
+    font-size: 12px;
+    color: #888;
+  }
+
+  .opt-check {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 1.5px solid #ddd;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: border-color 0.15s, background 0.15s;
+  }
+
+  .opt.selected .opt-check {
+    background: #1a1a1a;
+    border-color: #1a1a1a;
+  }
+
+  .opt.selected .opt-check::after {
+    content: '';
+    width: 5px;
+    height: 9px;
+    border: 1.5px solid #fff;
+    border-top: none;
+    border-left: none;
+    transform: rotate(45deg) translateY(-1px);
+    display: block;
+  }
+
+  .nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .btn {
+    padding: 11px 24px;
+    border-radius: 8px;
+    border: 0.5px solid #ccc;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    background: #fff;
+    color: #1a1a1a;
+    transition: background 0.15s, opacity 0.15s;
+    font-family: inherit;
+  }
+
+  .btn:hover:not(:disabled) { background: #f5f5f5; }
+  .btn:disabled { opacity: 0.3; cursor: default; }
+
+  .btn.primary {
+    background: #1a1a1a;
+    color: #fff;
+    border-color: #1a1a1a;
+  }
+
+  .btn.primary:hover:not(:disabled) { opacity: 0.85; }
+
+  /* Result */
+  .result-hero {
+    background: #f5f5f3;
+    padding: 2rem;
+    text-align: center;
+    border-bottom: 0.5px solid #e8e8e8;
+  }
+
+  .result-eyebrow {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #888;
+    margin-bottom: 10px;
+  }
+
+  .shoe-name {
+    font-size: 28px;
+    font-weight: 600;
+    letter-spacing: -0.5px;
+    color: #1a1a1a;
+    margin-bottom: 4px;
+  }
+
+  .shoe-sub {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 14px;
+  }
+
+  .shoe-price {
+    display: inline-block;
+    font-size: 22px;
+    font-weight: 500;
+    color: #1a1a1a;
+  }
+
+  .result-body { padding: 1.75rem 2rem; }
+
+  .section-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #888;
+    font-weight: 500;
+    margin-bottom: 8px;
+  }
+
+  .why-text {
+    font-size: 15px;
+    line-height: 1.65;
+    color: #333;
+    margin-bottom: 1.25rem;
+  }
+
+  .features {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 1.5rem;
+  }
+
+  .feat {
+    font-size: 12px;
+    border: 0.5px solid #ddd;
+    border-radius: 20px;
+    padding: 5px 14px;
+    color: #555;
+  }
+
+  .discount-box {
+    background: #f5f5f3;
+    border-radius: 12px;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1.25rem;
+    border: 0.5px solid #e0e0e0;
+  }
+
+  .discount-head {
+    font-size: 15px;
+    font-weight: 500;
+    color: #1a1a1a;
+    margin-bottom: 4px;
+  }
+
+  .discount-sub {
+    font-size: 13px;
+    color: #666;
+    margin-bottom: 14px;
+    line-height: 1.5;
+  }
+
+  .email-row {
+    display: flex;
+    gap: 8px;
+  }
+
+  .email-row input {
+    flex: 1;
+    padding: 10px 14px;
+    border: 0.5px solid #ccc;
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: inherit;
+    background: #fff;
+    color: #1a1a1a;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+
+  .email-row input:focus { border-color: #1a1a1a; }
+  .email-row input::placeholder { color: #bbb; }
+
+  .email-row button {
+    padding: 10px 18px;
+    border-radius: 8px;
+    border: none;
+    background: #1a1a1a;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: inherit;
+    white-space: nowrap;
+    transition: opacity 0.15s;
+  }
+
+  .email-row button:hover { opacity: 0.85; }
+  .email-row button:disabled { opacity: 0.4; cursor: default; }
+
+  .confirmed {
+    display: none;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: #2d7a2d;
+    margin-top: 10px;
+  }
+
+  .cta-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 1rem;
+  }
+
+  .cta-btn {
+    flex: 1;
+    padding: 13px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    text-align: center;
+    cursor: pointer;
+    text-decoration: none;
+    font-family: inherit;
+    transition: opacity 0.15s;
+    border: 0.5px solid #ccc;
+    display: inline-block;
+  }
+
+  .cta-primary-btn {
+    background: #1a1a1a;
+    color: #fff;
+    border-color: #1a1a1a;
+  }
+
+  .cta-secondary-btn {
+    background: #fff;
+    color: #1a1a1a;
+  }
+
+  .cta-btn:hover { opacity: 0.8; }
+
+  .restart {
+    text-align: center;
+    font-size: 13px;
+    color: #888;
+    cursor: pointer;
+    text-decoration: underline;
+    background: none;
+    border: none;
+    font-family: inherit;
+    padding: 0;
+  }
+
+  .restart:hover { color: #444; }
+
+  .page-footer {
+    margin-top: 1.5rem;
+    font-size: 12px;
+    color: #aaa;
+    text-align: center;
+  }
+
+  @media (max-width: 480px) {
+    .card-inner, .result-body { padding: 1.25rem; }
+    .result-hero { padding: 1.5rem; }
+    .q-text { font-size: 17px; }
+    .shoe-name { font-size: 22px; }
+    .email-row { flex-direction: column; }
+    .cta-row { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <span class="on-logo">On</span>
+  <span class="nw-badge">North West England</span>
+</div>
+
+<div class="card" id="quiz-card">
+  <div class="card-inner">
+    <div class="progress-wrap">
+      <div class="progress-meta">
+        <span class="step-label" id="step-label">Question 1 of 5</span>
+        <div class="step-dots" id="step-dots"></div>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" id="prog" style="width:20%"></div></div>
+    </div>
+    <p class="q-text" id="q-text"></p>
+    <div class="options" id="options"></div>
+    <div class="nav">
+      <button class="btn" id="btn-back" onclick="go(-1)" disabled>Back</button>
+      <button class="btn primary" id="btn-next" onclick="go(1)" disabled>Next</button>
+    </div>
+  </div>
+</div>
+
+<div class="card" id="result-card" style="display:none"></div>
+
+<div class="page-footer">
+  SSP6109 Digital Sports Marketing &nbsp;·&nbsp; PORT 1 Campaign Artefact 1 &nbsp;·&nbsp; ST20229493
+</div>
+
+<script>
+const questions = [
+  {
+    q: "How often do you run each week?",
+    opts: [
+      { icon: "🌱", label: "1–2 times", sub: "Just getting started or returning to running", val: "beginner" },
+      { icon: "🏃", label: "3–4 times", sub: "Regular recreational runner", val: "regular" },
+      { icon: "🔥", label: "5+ times", sub: "Committed or competitive runner", val: "committed" }
+    ]
+  },
+  {
+    q: "What's your preferred terrain?",
+    opts: [
+      { icon: "🏙️", label: "Road & pavement", sub: "Urban routes, tarmac, canal paths", val: "road" },
+      { icon: "🌲", label: "Trail & off-road", sub: "Delamere Forest, Alderley Edge, fell paths", val: "trail" },
+      { icon: "🔀", label: "Mixed", sub: "A bit of both depending on the day", val: "mixed" }
+    ]
+  },
+  {
+    q: "What distance do you usually run?",
+    opts: [
+      { icon: "⭕", label: "Up to 10K", sub: "Parkrun, local 5K/10K events", val: "short" },
+      { icon: "🥈", label: "Half marathon", sub: "Chester Half, Manchester Half", val: "half" },
+      { icon: "🏆", label: "Marathon & beyond", sub: "Long-distance, ultra, or multi-day events", val: "ultra" }
+    ]
+  },
+  {
+    q: "How would you describe your foot shape?",
+    opts: [
+      { icon: "➖", label: "Narrow to standard", sub: "Most off-the-shelf shoes fit well", val: "narrow" },
+      { icon: "➡️", label: "Standard width", sub: "No problems with regular sizing", val: "standard" },
+      { icon: "➕", label: "Wide or flat-footed", sub: "Often need extra room or arch support", val: "wide" }
+    ]
+  },
+  {
+    q: "What matters most in a running shoe?",
+    opts: [
+      { icon: "⚡", label: "Speed & responsiveness", sub: "Lightweight, fast, race-ready feel", val: "speed" },
+      { icon: "☁️", label: "Cushion & comfort", sub: "Long runs, recovery miles, everyday training", val: "cushion" },
+      { icon: "🛡️", label: "Grip & protection", sub: "Trail surfaces, wet ground, uneven terrain", val: "grip" }
+    ]
+  }
+];
+
+const shoes = {
+  "Cloud X 4": {
+    price: "£149.99",
+    sub: "Versatile all-rounder for road and gym",
+    features: ["CloudTec® cushioning", "Engineered mesh upper", "Road & cross-training", "5mm heel drop", "Lightweight build"],
+    url: "https://www.on.com/en-gb/shop/mens/shoes/cloud-x"
+  },
+  "Cloudvista 2": {
+    price: "£144.99",
+    sub: "Purpose-built for North West trails",
+    features: ["Deep lug outsole", "Speedboard® plate", "Trail & off-road grip", "Waterproof option available", "Protective toe cap"],
+    url: "https://www.on.com/en-gb/shop/mens/shoes/cloudvista"
+  },
+  "Cloudmonster 2": {
+    price: "£169.99",
+    sub: "Maximum cushioning for long distances",
+    features: ["Oversized CloudTec®", "Zero-Gravity foam midsole", "Long-run comfort", "Wide toe box", "High stack height"],
+    url: "https://www.on.com/en-gb/shop/mens/shoes/cloudmonster"
+  },
+  "Cloudsurfer 7": {
+    price: "£154.99",
+    sub: "Everyday road runner with a superb ride",
+    features: ["Helion™ superfoam", "Seamless upper construction", "Road-focused outsole", "10mm heel drop", "Responsive rebound"],
+    url: "https://www.on.com/en-gb/shop/mens/shoes/cloudsurfer"
+  },
+  "Cloudultra 2": {
+    price: "£189.99",
+    sub: "Built for Delamere Forest and beyond",
+    features: ["Ultra-trail outsole", "Mission Grip™ rubber", "Long-distance protection", "Integrated stone guard", "Cushioned for big miles"],
+    url: "https://www.on.com/en-gb/shop/mens/shoes/cloudultra"
+  }
+};
+
+function recommend(a) {
+  const terrain = a[1], dist = a[2], priority = a[4];
+  if (terrain === "trail" && dist === "ultra") return "Cloudultra 2";
+  if (terrain === "trail") return "Cloudvista 2";
+  if (dist === "ultra" || priority === "cushion") return "Cloudmonster 2";
+  if (priority === "speed") return "Cloud X 4";
+  return "Cloudsurfer 7";
+}
+
+function whyText(shoe, a) {
+  const terrain = a[1], dist = a[2];
+  const loc = terrain === "trail"
+    ? "the trails around Delamere Forest and Alderley Edge"
+    : terrain === "mixed"
+    ? "your mix of road and trail routes across North West England"
+    : "your road routes across North West England";
+  const distText = dist === "short"
+    ? "shorter distances and parkrun events"
+    : dist === "half"
+    ? "half marathon training, including events like the Chester Half"
+    : "long-distance running and ultra events";
+  return `Based on your answers, the ${shoe} is your perfect match. It's engineered for ${loc} and optimised for ${distText} — giving you the confidence and comfort to run farther and faster, every session.`;
+}
+
+let current = 0;
+const answers = {};
+
+function renderDots() {
+  const container = document.getElementById("step-dots");
+  container.innerHTML = "";
+  for (let i = 0; i < questions.length; i++) {
+    const d = document.createElement("div");
+    d.className = "dot" + (i === current ? " active" : i < current ? " done" : "");
+    container.appendChild(d);
+  }
+}
+
+function render() {
+  const q = questions[current];
+  document.getElementById("q-text").textContent = q.q;
+  document.getElementById("step-label").textContent = `Question ${current + 1} of ${questions.length}`;
+  document.getElementById("prog").style.width = ((current + 1) / questions.length * 100) + "%";
+  document.getElementById("btn-back").disabled = current === 0;
+  document.getElementById("btn-next").disabled = !answers[current];
+  document.getElementById("btn-next").textContent = current === questions.length - 1 ? "Find my shoe →" : "Next";
+  renderDots();
+
+  const container = document.getElementById("options");
+  container.innerHTML = "";
+  q.opts.forEach(o => {
+    const div = document.createElement("div");
+    div.className = "opt" + (answers[current] === o.val ? " selected" : "");
+    div.innerHTML = `
+      <span class="opt-icon" aria-hidden="true">${o.icon}</span>
+      <div class="opt-text">
+        <div class="opt-label">${o.label}</div>
+        <div class="opt-sub">${o.sub}</div>
+      </div>
+      <div class="opt-check"></div>
+    `;
+    div.onclick = () => { answers[current] = o.val; render(); };
+    container.appendChild(div);
+  });
+}
+
+function go(dir) {
+  if (dir === 1 && current === questions.length - 1) { showResult(); return; }
+  current = Math.max(0, Math.min(questions.length - 1, current + dir));
+  render();
+}
+
+function showResult() {
+  const shoe = recommend(answers);
+  const info = shoes[shoe];
+  document.getElementById("quiz-card").style.display = "none";
+  const rc = document.getElementById("result-card");
+  rc.style.display = "block";
+  rc.innerHTML = `
+    <div class="result-hero">
+      <div class="result-eyebrow">Your recommended shoe</div>
+      <div class="shoe-name">${shoe}</div>
+      <div class="shoe-sub">${info.sub}</div>
+      <div class="shoe-price">${info.price}</div>
+    </div>
+    <div class="result-body">
+      <div class="section-label">Why this shoe</div>
+      <p class="why-text">${whyText(shoe, answers)}</p>
+      <div class="features">${info.features.map(f => `<span class="feat">${f}</span>`).join("")}</div>
+      <div class="discount-box">
+        <div class="discount-head">🎟️ Unlock your 10% first-purchase discount</div>
+        <div class="discount-sub">Enter your email and we'll send your exclusive code straight away. One use only — enjoy your first On Running shoe at a special price.</div>
+        <div class="email-row">
+          <input type="email" id="email-in" placeholder="your@email.com" />
+          <button id="claim-btn" onclick="claimDiscount()">Claim 10% off</button>
+        </div>
+        <div class="confirmed" id="confirmed">✅ Code on its way — check your inbox.</div>
+      </div>
+      <div class="cta-row">
+        <a class="cta-btn cta-primary-btn" href="${info.url}" target="_blank">Shop the ${shoe} →</a>
+        <a class="cta-btn cta-secondary-btn" href="https://www.on.com/en-gb/" target="_blank">Browse all On shoes</a>
+      </div>
+      <div style="text-align:center; margin-top: 0.5rem;">
+        <button class="restart" onclick="restart()">← Retake the quiz</button>
+      </div>
+    </div>
+  `;
+}
+
+function claimDiscount() {
+  const val = document.getElementById("email-in").value.trim();
+  if (!val || !val.includes("@") || !val.includes(".")) {
+    document.getElementById("email-in").focus();
+    return;
+  }
+  document.getElementById("email-in").disabled = true;
+  document.getElementById("claim-btn").disabled = true;
+  document.getElementById("confirmed").style.display = "flex";
+}
+
+function restart() {
+  Object.keys(answers).forEach(k => delete answers[k]);
+  current = 0;
+  document.getElementById("result-card").style.display = "none";
+  document.getElementById("quiz-card").style.display = "block";
+  render();
+}
+
+render();
+</script>
+</body>
+</html>
